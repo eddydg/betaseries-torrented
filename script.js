@@ -12,36 +12,42 @@
 (function() {
     'use strict';
 
-    let baseUrl = "https://idope.se/torrent-list/";
-    let position = 0;
+    let providers = {
+        "idope": {
+            getUrl: (q) => `https://idope.se/torrent-list/${encodeURIComponent(q)}`,
+            hashId: "#hideinfohash0"
+        }
+    };
+
+    function getBtn(link, name) {
+        return `<div class="markas"><a class="markas_img" href="${link}">${name}</a></div>`;
+    }
 
     var observer = new MutationObserver(function(mutations) {
         observer.disconnect();
         let aEpisode = $("#episodes_container .episodes .episode");
         var episodes = document.querySelectorAll('#episodes_container .episode-titre');
         for (let i = 0; i < episodes.length; i++) {
+            let position = 0;
+
             let showName = episodes[i].querySelector('a:nth-child(1)').firstChild.nodeValue;
             let showEpisode = episodes[i].querySelector('a:nth-child(2)').firstChild.nodeValue;
             let query = showName + " " + showEpisode + " x265";
-            let url = baseUrl + encodeURIComponent(query);
 
+            let provider = providers["idope"];
             GM_xmlhttpRequest({
                 method: "GET",
-                url: url,
+                url: provider.getUrl(query),
                 fetch: true,
                 onreadystatechange: function(state) {
-                    let res = state.responseText;
-                    let dom = $(res);
-                    let hidehash = dom.find(`#hideinfohash${position}`).text();
-                    //let hidename = dom.find(`#hidename${position}`).text();
-                    //let hidetrack = dom.find(`#hidetrack${position}`).text();
+                    let dom = $(state.responseText);
+                    let magnetHash = dom.find(provider.hashId).text();
 
-                    if (!hidehash) return;
+                    if (!magnetHash) return;
 
-                    //let magnet = `magnet:?xt=urn:btih:${hidehash}&dn=${hidename}${hidetrack}`;
-                    let magnet = `magnet:?xt=urn:btih:${hidehash}`;
+                    let magnet = `magnet:?xt=urn:btih:${magnetHash}`;
 
-                    let btn = `<div class="markas"><a class="markas_img" href="${magnet}">1080p</a></div>`;
+                    let btn = getBtn(magnet, "1080p");
                     $(aEpisode[i]).find(".episode-side").prepend(btn);
                 }
             });
