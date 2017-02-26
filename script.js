@@ -15,7 +15,7 @@
         "idope": {
             getUrl: (q) => `https://idope.se/torrent-list/${encodeURIComponent(q)}`,
             getHash: (dom) => {
-                return dom.find("#hideinfohash0").text();
+                return dom.querySelector("#hideinfohash0").innerHTML;
             }
         },
         "skytorrents": {
@@ -50,7 +50,7 @@
             let showEpisode = episodes[i].querySelector('.episode-titre a:nth-child(2)').firstChild.nodeValue;
             let query = showName + " " + showEpisode + " x265";
 
-            let provider = providers["skytorrents"];
+            let provider = providers["idope"];
             GM_xmlhttpRequest({
                 method: "GET",
                 url: provider.getUrl(query),
