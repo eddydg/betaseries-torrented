@@ -19,7 +19,8 @@
                 return [...dom.querySelectorAll(".resultdiv")]
                     .map(e => { return {
                         title: e.querySelector(".resultdivtopname").innerHTML.trim(),
-                        link: `magnet:?xt=urn:btih:${e.querySelector("div[id^='hideinfohash']").innerHTML}`
+                        link: `magnet:?xt=urn:btih:${e.querySelector("div[id^='hideinfohash']").innerHTML}`,
+                        size: e.querySelector(".resultdivbottonlength").innerHTML.trim()
                     };
                 });
             }
@@ -29,8 +30,9 @@
             getLinks: (dom) => {
                 return [...dom.querySelectorAll("tbody tr")]
                     .map(tr => { return {
-                        "title": tr.querySelector("a").innerHTML.trim(),
-                        "link": tr.querySelector("a[href^='magnet']").href
+                        title: tr.querySelector("a").innerHTML.trim(),
+                        link: tr.querySelector("a[href^='magnet']").href,
+                        size: tr.querySelector("td:nth-child(2)").innerHTML.trim()
                     };
                 });
             }
@@ -67,7 +69,7 @@
         for (let i = 0; i < results.length; i++) {
             let li = document.createElement('li');
             let span = document.createElement('span');
-            span.innerHTML = results[i].title;
+            span.innerHTML = results[i].title + " (" + results[i].size + ")";
             let a = document.createElement('a');
             a.href = results[i].link;
             a.appendChild(span);
@@ -91,7 +93,7 @@
             let showEpisode = episodes[i].querySelector('.episode-titre a:nth-child(2)').firstChild.nodeValue;
             let query = showName + " " + showEpisode + " " + keywords.join(" ");
 
-            let provider = providers["idope"];
+            let provider = providers["skytorrents"];
             GM_xmlhttpRequest({
                 method: "GET",
                 url: provider.getUrl(query),
@@ -101,7 +103,6 @@
                     let dom = parser.parseFromString(state.responseText, "text/html");
 
                     let results = provider.getLinks(dom);
-                    console.log(results);
                     if (results.length < 1) return;
 
                     let episodeId = (showName + showEpisode).replace(/[^a-z0-9]/gi,'');
