@@ -49,46 +49,52 @@
 
         btn.onclick = ()  => {
             let magnetBox = document.querySelector(`#${episodeId}`);
-            if (magnetBox.style.display === "none")
+            if (magnetBox.style.display === "none") {
                 magnetBox.style.display = "";
-            else
+            } else {
                 magnetBox.style.display = "none";
+            }
         };
 
         return btn;
     }
 
     function createMagnetBox(dom, episodeId, results) {
+
         let box = document.createElement('div');
         box.className = "box top srt";
         box.id = episodeId;
         box.style.display = "none";
+
         let content = document.createElement('content');
+
         let ul = document.createElement('ul');
         ul.className = "srt";
-        for (let i = 0; i < results.length; i++) {
-            let li = document.createElement('li');
-            let span = document.createElement('span');
-            span.innerHTML = results[i].title + " (" + results[i].size + ")";
-            let a = document.createElement('a');
-            a.href = results[i].link;
-            a.appendChild(span);
-            li.appendChild(a);
-            ul.appendChild(li);
-        }
+
+        results.map(result => appendResultToMagnetBox(result, ul));
         content.appendChild(ul);
         box.appendChild(content);
-
         dom.appendChild(box);
     }
 
+    function appendResultToMagnetBox(result, ul) {
+      let span = document.createElement('span');
+      span.innerHTML = `${result.title} (${result.size})`;
+
+      let a = document.createElement('a');
+      a.href = result.link;
+      a.appendChild(span);
+
+      let li = document.createElement('li');
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
+
     var observer = new MutationObserver(function(mutations) {
-        observer.disconnect();
+        observer.disconnect(); // Avoid endless loop
 
         var episodes = document.querySelectorAll('#episodes_container .episode');
         for (let i = 0; i < episodes.length; i++) {
-            let position = 0;
-
             let showName = episodes[i].querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
             let showEpisode = episodes[i].querySelector('.episode-titre a:nth-child(2)').firstChild.nodeValue;
             let query = showName + " " + showEpisode + " " + keywords.join(" ");
