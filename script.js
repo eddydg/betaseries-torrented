@@ -93,8 +93,6 @@
 
     let domParser = new DOMParser();
     var observer = new MutationObserver(function(mutations) {
-        observer.disconnect(); // Avoid endless loop
-
         var episodes = document.querySelectorAll('#episodes_container .episode');
         episodes.forEach(episode => {
             let showName = episode.querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
@@ -120,9 +118,9 @@
     });
 
     observer.observe(document.querySelector("#episodes_container"), {
-        childList: true,
-        subtree: true,
-        attributes: false,
+        childList: false,
+        subtree: false,
+        attributes: true,
         characterData: false,
     });
 
