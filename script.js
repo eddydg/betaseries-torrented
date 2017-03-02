@@ -14,27 +14,27 @@
     let providers = {
         "idope": {
             getUrl: (q) => `https://idope.se/torrent-list/${encodeURIComponent(q)}/?&c=3`,
-            getLinks: (dom) => {
+            getLinks: (dom) => (
                 [...dom.querySelectorAll(".resultdiv")]
                     .map(e => ({
                         title: e.querySelector(".resultdivtopname").innerHTML.trim(),
                         link: `magnet:?xt=urn:btih:${e.querySelector("div[id^='hideinfohash']").innerHTML}`,
                         size: e.querySelector(".resultdivbottonlength").innerHTML.trim()
                     })
-                );
-            }
+                )
+            )
         },
         "skytorrents": {
             getUrl: (q) => `https://www.skytorrents.in/search/all/ed/1/?l=en-us&q=${encodeURIComponent(q)}`,
-            getLinks: (dom) => {
+            getLinks: (dom) => (
                 [...dom.querySelectorAll("tbody tr")]
                     .map(tr => ({
                         title: tr.querySelector("a").innerHTML.trim(),
                         link: tr.querySelector("a[href^='magnet']").href,
                         size: tr.querySelector("td:nth-child(2)").innerHTML.trim()
                     })
-                );
-            }
+                )
+            )
         }
     };
 
