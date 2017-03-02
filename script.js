@@ -10,7 +10,6 @@
 
 (function() {
     'use strict';
-    let keywords = ["1080p", "x265"];
 
     let providers = {
         "idope": {
@@ -38,6 +37,9 @@
             }
         }
     };
+
+    let provider = providers["skytorrents"];
+    let keywords = ["1080p", "x265"];
 
     function getBtn(episodeId) {
         let btn = document.createElement('div');
@@ -94,12 +96,11 @@
         observer.disconnect(); // Avoid endless loop
 
         var episodes = document.querySelectorAll('#episodes_container .episode');
-        for (let i = 0; i < episodes.length; i++) {
-            let showName = episodes[i].querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
-            let showEpisode = episodes[i].querySelector('.episode-titre a:nth-child(2)').firstChild.nodeValue;
+        episodes.forEach(episode => {
+            let showName = episode.querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
+            let showEpisode = episode.querySelector('.episode-titre a:nth-child(2)').firstChild.nodeValue;
             let query = showName + " " + showEpisode + " " + keywords.join(" ");
 
-            let provider = providers["skytorrents"];
             GM_xmlhttpRequest({
                 method: "GET",
                 url: provider.getUrl(query),
@@ -112,12 +113,12 @@
                     if (results.length < 1) return;
 
                     let episodeId = (showName + showEpisode).replace(/[^a-z0-9]/gi,'');
-                    let episodeSideHtml = episodes[i].querySelector(".episode-side");
-                    episodeSideHtml.prepend(getBtn(episodeId));
-                    createMagnetBox(episodeSideHtml, episodeId, results);
+                    let targetHtml = episode.querySelector(".episode-side");
+                    targetHtml.prepend(getBtn(episodeId));
+                    createMagnetBox(targetHtml, episodeId, results);
                 }
             });
-        }
+        });
     });
 
     observer.observe(document.querySelector("#episodes_container"), {
