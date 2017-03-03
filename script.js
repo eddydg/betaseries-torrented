@@ -42,6 +42,7 @@
     const keywords = ["1080p", "x265"];
     const magnetIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsElEQVQ4T23QbUhTYRQH8P+9dvMtcznYLHWkU6cLArtNm2FaFEWZRkSkUYq2jBANti+BiVDSF5OMjJQZiLQiYiRpEEVpI5e2pcbUjTWNqdMNW2m+dLN248oac+yB58Phf86P5zkEAk4nEMUAx1ngMAEkcTELjBPAy1DgeSHw03+E8C86gK0USTaI5PSeJHmmIDKaF8HlS/M/lsf1Ay673vhh1eNRnQNm/s/5gDYgKpQkW3adLjwgTBAJfzm/r3tbmHALnJN256cnnW8Yj6ei3PsSH9AOFCfK6etiWWbSwpTTMzI66piw292ckigSxeyQSrdtjheSto8D4xN647USQMNlPuAB0J5zqeTk0rR706jZPGWxWh9RQBPXtApUS1JSiqRpafGRcTGLuvvt2jKgZB2gBnR5l8uzXZavZG9f3+e/KytHa4BprukGEBcSHv4iNzt7p0Cy3dNzr63vApCzDmgBDPsU5+kZkxXv9HpjHbDbfwl1XC6X07HSZOjaOowV3tz3hbuAIbf4FD07ZsP7wcGgwN6MDDo2XYxezVNjZSBwGzAcPHGM/jb2BW8tlqDAfomE5qcn4/WzbuOVQKABMBQeyqPnzTZ0TU4GBfITEujoNDE6X/UYVYHATcBwNkdOL1tseOxyBQXOCAR0hESMhzq98WogIJPJFGq1utVsdqGxsUbV399/y3+JWVlZF5ubm1scjhXU16t8uW+JYrFYodVq14Da2spqi8Vyxx9ITU1VaDSaVg5QKsuqrVbrWu4DeDxelclkahoasqO0tEA5NzfX6A/w+fyq4eHhppERB4qKjijdbvdazgE8AFEUReWzLCskSZIgCGKWYZhuAIsA/gCIpCiqgGXZWJIkQwiCmGEYpgvAAgeEAQj13g0APN6hVQC/vfVGANylAJDenAHA/AMeSRE3vrDTDwAAAABJRU5ErkJggg==";
 
+    let openedMagnetBox = null;
     function getBtn(episodeId) {
         const btn = document.createElement('div');
 
@@ -53,8 +54,13 @@
             const magnetBox = document.querySelector(`#${episodeId}`);
             if (magnetBox.style.display === "none") {
                 magnetBox.style.display = "";
+                if (openedMagnetBox) {
+                    document.querySelector(`#${openedMagnetBox}`).style.display = "none";
+                }
+                openedMagnetBox = episodeId;
             } else {
                 magnetBox.style.display = "none";
+                openedMagnetBox = null;
             }
         };
 
@@ -102,10 +108,12 @@
         const results = getResults(state);
 
         if (results.length > 0) {
-          const magnetBox = getMagnetBox(episodeId, results);
-          const targetHtml = episode.querySelector(".episode-side");
-          targetHtml.prepend(getBtn(episodeId));
-          targetHtml.appendChild(magnetBox);
+            const magnetBox = getMagnetBox(episodeId, results);
+            const episodeSideHtml = episode.querySelector(".episode-side");
+            const episodeTitleHtml = episode.querySelector(".episode-titre");
+
+            episodeSideHtml.prepend(getBtn(episodeId));
+            episodeTitleHtml.appendChild(magnetBox);
         }
       }
 
