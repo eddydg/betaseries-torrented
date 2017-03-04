@@ -86,22 +86,22 @@
     }
 
     function appendResultToMagnetBox(result, ul) {
-      const span = document.createElement('span');
-      span.innerHTML = `${result.title} (${result.size})`;
+        const span = document.createElement('span');
+        span.innerHTML = `${result.title} (${result.size})`;
 
-      const a = document.createElement('a');
-      a.href = result.link;
-      a.appendChild(span);
+        const a = document.createElement('a');
+        a.href = result.link;
+        a.appendChild(span);
 
-      const li = document.createElement('li');
-      li.appendChild(a);
-      ul.appendChild(li);
+        const li = document.createElement('li');
+        li.appendChild(a);
+        ul.appendChild(li);
     }
 
     function getResults(state) {
-      const dom = domParser.parseFromString(state.responseText, "text/html");
-      const results = provider.getLinks(dom);
-      return results;
+        const dom = domParser.parseFromString(state.responseText, "text/html");
+        const results = provider.getLinks(dom);
+        return results;
     }
 
     function onFetchedProviderResults(state, episode, episodeId) {
@@ -115,7 +115,12 @@
             episodeSideHtml.prepend(getBtn(episodeId));
             episodeTitleHtml.appendChild(magnetBox);
         }
-      }
+    }
+
+    function getCleanedQuery(q) {
+        return q.replace(/ \([1-2][0-9]{3}\)/gi, ''); // Remove years " (1000)" to " (2999)"
+    }
+
 
     const domParser = new DOMParser();
     const observer = new MutationObserver(function(mutations) {
@@ -128,7 +133,7 @@
 
             GM_xmlhttpRequest({
                 method: "GET",
-                url: provider.getUrl(query),
+                url: provider.getUrl(getCleanedQuery(query)),
                 fetch: true,
                 onreadystatechange: state => onFetchedProviderResults(state, episode, episodeId)
             });
