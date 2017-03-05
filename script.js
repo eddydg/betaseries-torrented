@@ -45,6 +45,7 @@
     let openedMagnetBox = null;
     function getBtn(episodeId) {
         const btn = document.createElement('div');
+        btn.style.cursor = "pointer";
 
         const img = document.createElement('img');
         img.src = magnetIcon;
