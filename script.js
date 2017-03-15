@@ -1,17 +1,20 @@
 // ==UserScript==
 // @name         Betaseries Torrented
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      1.0
 // @description  Find the best magnet links for your unwatched tvshow episodes
 // @author       Eddydg
 // @match        https://www.betaseries.com/membre/*/episodes
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_deleteValue
+// @grant        GM_listValues
 // ==/UserScript==
 
 (function() {
     'use strict';
+    console.log(GM_listValues());
 
     const providers = {
         "idope": {
@@ -41,6 +44,9 @@
     };
 
     const CACHE_NAME = "cached_result_";
+    const CACHE_DAY_LIFESPAN = 7;
+    const today = new Date();
+
     const provider = providers["skytorrents"];
     const keywords = ["1080p", "x265"];
     const magnetIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsElEQVQ4T23QbUhTYRQH8P+9dvMtcznYLHWkU6cLArtNm2FaFEWZRkSkUYq2jBANti+BiVDSF5OMjJQZiLQiYiRpEEVpI5e2pcbUjTWNqdMNW2m+dLN248oac+yB58Phf86P5zkEAk4nEMUAx1ngMAEkcTELjBPAy1DgeSHw03+E8C86gK0USTaI5PSeJHmmIDKaF8HlS/M/lsf1Ay673vhh1eNRnQNm/s/5gDYgKpQkW3adLjwgTBAJfzm/r3tbmHALnJN256cnnW8Yj6ei3PsSH9AOFCfK6etiWWbSwpTTMzI66piw292ckigSxeyQSrdtjheSto8D4xN647USQMNlPuAB0J5zqeTk0rR706jZPGWxWh9RQBPXtApUS1JSiqRpafGRcTGLuvvt2jKgZB2gBnR5l8uzXZavZG9f3+e/KytHa4BprukGEBcSHv4iNzt7p0Cy3dNzr63vApCzDmgBDPsU5+kZkxXv9HpjHbDbfwl1XC6X07HSZOjaOowV3tz3hbuAIbf4FD07ZsP7wcGgwN6MDDo2XYxezVNjZSBwGzAcPHGM/jb2BW8tlqDAfomE5qcn4/WzbuOVQKABMBQeyqPnzTZ0TU4GBfITEujoNDE6X/UYVYHATcBwNkdOL1tseOxyBQXOCAR0hESMhzq98WogIJPJFGq1utVsdqGxsUbV399/y3+JWVlZF5ubm1scjhXU16t8uW+JYrFYodVq14Da2spqi8Vyxx9ITU1VaDSaVg5QKsuqrVbrWu4DeDxelclkahoasqO0tEA5NzfX6A/w+fyq4eHhppERB4qKjijdbvdazgE8AFEUReWzLCskSZIgCGKWYZhuAIsA/gCIpCiqgGXZWJIkQwiCmGEYpgvAAgeEAQj13g0APN6hVQC/vfVGANylAJDenAHA/AMeSRE3vrDTDwAAAABJRU5ErkJggg==";
@@ -133,12 +139,12 @@
             const query = `${showName} ${showEpisode} ${keywords.join(" ")}`;
             const episodeId = (showName + showEpisode).replace(/[^a-z0-9]/gi,'');
 
-            const cachedResults = GM_getValue(CACHE_NAME + episodeId);
-            if (cachedResults) {
-                const results = JSON.parse(cachedResults);
+            const cachedResults = JSON.parse(GM_getValue(CACHE_NAME + episodeId) || null);
+            const cacheDate = new Date(cachedResults.date);
+            if (cachedResults && !isCacheTooOld(cacheDate)) {
                 console.log("Using cached results: ");
-                console.log(results);
-                onFetchedProviderResults(results, episode, episodeId);
+                console.log(cachedResults);
+                onFetchedProviderResults(cachedResults.results, episode, episodeId);
             } else {
                 GM_xmlhttpRequest({
                     method: "GET",
@@ -147,7 +153,11 @@
                     onreadystatechange: state => {
                         const results = getResults(state);
                         onFetchedProviderResults(results, episode, episodeId);
-                        GM_setValue(CACHE_NAME + episodeId, JSON.stringify(results));
+                        let resultsToCache = {
+                            results: results,
+                            date: new Date()
+                        };
+                        GM_setValue(CACHE_NAME + episodeId, JSON.stringify(resultsToCache));
                     }
                 });
             }
@@ -161,5 +171,15 @@
         attributes: true,
         characterData: false
     });
+
+    function cleanCachedEpisodeResults() {
+        GM_listValues()
+            .filter(e => e.startsWith(CACHE_NAME))
+            .map(e => GM_deleteValue(e));
+    }
+
+    function isCacheTooOld(cacheDate) {
+        return cacheDate.getTime() > new Date(new Date().setDate(today.getDate() + CACHE_DAY_LIFESPAN)).getTime();
+    }
 
 })();
