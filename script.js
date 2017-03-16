@@ -140,8 +140,7 @@
             const episodeId = (showName + showEpisode).replace(/[^a-z0-9]/gi,'');
 
             const cachedResults = JSON.parse(GM_getValue(CACHE_NAME + episodeId) || null);
-            const cacheDate = new Date(cachedResults.date);
-            if (cachedResults && !isCacheTooOld(cacheDate)) {
+            if (cachedResults && !isCacheTooOld(new Date(cachedResults.date))) {
                 console.log("Using cached results: ");
                 console.log(cachedResults);
                 onFetchedProviderResults(cachedResults.results, episode, episodeId);
