@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Betaseries Torrented
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Find the best magnet links for your unwatched tvshow episodes
 // @author       Eddydg
 // @match        https://www.betaseries.com/membre/*/episodes
@@ -16,7 +16,7 @@
 (function() {
     'use strict';
     console.log(GM_listValues());
-    
+
     const FUSE_OPTIONS = {
         keys: ['title'],
         include: ["score","matches"],
@@ -50,14 +50,26 @@
                     })
                 )
             )
+        },
+        "zooqle": {
+            getUrl: (q) => `https://zooqle.com/search?q=${encodeURIComponent(q)}+category%3ATV%2CAnime`,
+            getLinks: (dom) => (
+                [...dom.querySelectorAll('tbody tr')]
+                    .map(tr => ({
+                        title: tr.children[1].querySelector('a').textContent,
+                        link: tr.children[2].children[0].children[1].children[0].href,
+                        size: tr.children[3].children[0].children[0].textContent
+                    })
+                )
+            )
         }
     };
 
     const CACHE_NAME = "cached_result_";
-    const CACHE_DAY_LIFESPAN = 7;
+    const CACHE_DAY_LIFESPAN = 1;
     const today = new Date();
     cleanCachedEpisodeResults();
-    const provider = providers["skytorrents"];
+    const provider = providers["zooqle"];
     const keywords = ["1080p", "x265"];
     const magnetIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsElEQVQ4T23QbUhTYRQH8P+9dvMtcznYLHWkU6cLArtNm2FaFEWZRkSkUYq2jBANti+BiVDSF5OMjJQZiLQiYiRpEEVpI5e2pcbUjTWNqdMNW2m+dLN248oac+yB58Phf86P5zkEAk4nEMUAx1ngMAEkcTELjBPAy1DgeSHw03+E8C86gK0USTaI5PSeJHmmIDKaF8HlS/M/lsf1Ay673vhh1eNRnQNm/s/5gDYgKpQkW3adLjwgTBAJfzm/r3tbmHALnJN256cnnW8Yj6ei3PsSH9AOFCfK6etiWWbSwpTTMzI66piw292ckigSxeyQSrdtjheSto8D4xN647USQMNlPuAB0J5zqeTk0rR706jZPGWxWh9RQBPXtApUS1JSiqRpafGRcTGLuvvt2jKgZB2gBnR5l8uzXZavZG9f3+e/KytHa4BprukGEBcSHv4iNzt7p0Cy3dNzr63vApCzDmgBDPsU5+kZkxXv9HpjHbDbfwl1XC6X07HSZOjaOowV3tz3hbuAIbf4FD07ZsP7wcGgwN6MDDo2XYxezVNjZSBwGzAcPHGM/jb2BW8tlqDAfomE5qcn4/WzbuOVQKABMBQeyqPnzTZ0TU4GBfITEujoNDE6X/UYVYHATcBwNkdOL1tseOxyBQXOCAR0hESMhzq98WogIJPJFGq1utVsdqGxsUbV399/y3+JWVlZF5ubm1scjhXU16t8uW+JYrFYodVq14Da2spqi8Vyxx9ITU1VaDSaVg5QKsuqrVbrWu4DeDxelclkahoasqO0tEA5NzfX6A/w+fyq4eHhppERB4qKjijdbvdazgE8AFEUReWzLCskSZIgCGKWYZhuAIsA/gCIpCiqgGXZWJIkQwiCmGEYpgvAAgeEAQj13g0APN6hVQC/vfVGANylAJDenAHA/AMeSRE3vrDTDwAAAABJRU5ErkJggg==";
 
