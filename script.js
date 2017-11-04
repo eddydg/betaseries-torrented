@@ -123,6 +123,7 @@
 
         const a = document.createElement('a');
         a.href = result.link;
+	a.title = `${result.title} (${result.size})`;
         a.appendChild(span);
 
         const li = document.createElement('li');
