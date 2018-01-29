@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Betaseries Torrented
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Find the best magnet links for your unwatched tvshow episodes
 // @author       Eddydg
 // @match        https://www.betaseries.com/membre/*/episodes
@@ -94,11 +94,12 @@
         btn.appendChild(img);
         btn.onclick = () => {
             const magnetBox = document.querySelector(`#${episodeId}`);
-            if (magnetBox.style.display === "none") {
-                magnetBox.style.display = "";
+            if (magnetBox.style.display === "none" || Array.includes(magnetBox.classList, "hidden")) {
                 if (openedMagnetBox) {
                     document.querySelector(`#${openedMagnetBox}`).style.display = "none";
                 }
+                magnetBox.style.display = "";
+                magnetBox.className = magnetBox.className.replace(" hidden", "");
                 openedMagnetBox = episodeId;
             } else {
                 magnetBox.style.display = "none";
@@ -173,6 +174,7 @@
 
     const domParser = new DOMParser();
     const observer = new MutationObserver(function(mutations) {
+        debugger;
         var episodes = document.querySelectorAll('#episodes_container .episode');
         episodes.forEach(episode => {
             const showName = episode.querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
