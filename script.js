@@ -78,7 +78,7 @@
     const CACHE_DAY_LIFESPAN = 1;
     const today = new Date();
     cleanCachedEpisodeResults();
-    const provider = providers["zooqle"];
+    const provider = providers["idope"];
     const keywords = ["1080p"];
     const additionalKeywords = ["x265"];
     const magnetIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsElEQVQ4T23QbUhTYRQH8P+9dvMtcznYLHWkU6cLArtNm2FaFEWZRkSkUYq2jBANti+BiVDSF5OMjJQZiLQiYiRpEEVpI5e2pcbUjTWNqdMNW2m+dLN248oac+yB58Phf86P5zkEAk4nEMUAx1ngMAEkcTELjBPAy1DgeSHw03+E8C86gK0USTaI5PSeJHmmIDKaF8HlS/M/lsf1Ay673vhh1eNRnQNm/s/5gDYgKpQkW3adLjwgTBAJfzm/r3tbmHALnJN256cnnW8Yj6ei3PsSH9AOFCfK6etiWWbSwpTTMzI66piw292ckigSxeyQSrdtjheSto8D4xN647USQMNlPuAB0J5zqeTk0rR706jZPGWxWh9RQBPXtApUS1JSiqRpafGRcTGLuvvt2jKgZB2gBnR5l8uzXZavZG9f3+e/KytHa4BprukGEBcSHv4iNzt7p0Cy3dNzr63vApCzDmgBDPsU5+kZkxXv9HpjHbDbfwl1XC6X07HSZOjaOowV3tz3hbuAIbf4FD07ZsP7wcGgwN6MDDo2XYxezVNjZSBwGzAcPHGM/jb2BW8tlqDAfomE5qcn4/WzbuOVQKABMBQeyqPnzTZ0TU4GBfITEujoNDE6X/UYVYHATcBwNkdOL1tseOxyBQXOCAR0hESMhzq98WogIJPJFGq1utVsdqGxsUbV399/y3+JWVlZF5ubm1scjhXU16t8uW+JYrFYodVq14Da2spqi8Vyxx9ITU1VaDSaVg5QKsuqrVbrWu4DeDxelclkahoasqO0tEA5NzfX6A/w+fyq4eHhppERB4qKjijdbvdazgE8AFEUReWzLCskSZIgCGKWYZhuAIsA/gCIpCiqgGXZWJIkQwiCmGEYpgvAAgeEAQj13g0APN6hVQC/vfVGANylAJDenAHA/AMeSRE3vrDTDwAAAABJRU5ErkJggg==";
@@ -133,19 +133,23 @@
         span.innerHTML = `${result.title} (${result.size})`;
 
         const ratio = document.createElement('span');
-        ratio.innerText = Math.round(result.health.ratio * 100) / 100;
-        ratio.title = `Seeders: ${result.health.seeders} | Leechers: ${result.health.leechers}`;
-        ratio.style.overflow = "visible";
-        ratio.style.minWidth = "initial";
-        ratio.style.marginRight = "5px";
+        if (result.health) {
+            ratio.innerText = Math.round(result.health.ratio * 100) / 100;
+            ratio.title = `Seeders: ${result.health.seeders} | Leechers: ${result.health.leechers}`;
+            ratio.style.overflow = "visible";
+            ratio.style.minWidth = "initial";
+            ratio.style.marginRight = "5px";
+        }
 
         const a = document.createElement('a');
         a.href = result.link;
-	     a.title = `${result.title} (${result.size})`;
+         a.title = `${result.title} (${result.size})`;
         a.appendChild(span);
 
         const li = document.createElement('li');
-        li.appendChild(ratio);
+        if (result.health) {
+            li.appendChild(ratio);
+        }
         li.appendChild(a);
         ul.appendChild(li);
     }
@@ -174,7 +178,6 @@
 
     const domParser = new DOMParser();
     const observer = new MutationObserver(function(mutations) {
-        debugger;
         var episodes = document.querySelectorAll('#episodes_container .episode');
         episodes.forEach(episode => {
             const showName = episode.querySelector('.episode-titre a:nth-child(1)').firstChild.nodeValue;
