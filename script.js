@@ -160,7 +160,7 @@
         return results;
     }
 
-    function onFetchedProviderResults(results, episode, episodeId) {
+    function onFetchedProviderResults(results = [], episode, episodeId) {
         if (results.length > 0) {
             const magnetBox = getMagnetBox(episodeId, results);
             const episodeSideHtml = episode.querySelector(".episode-side");
@@ -190,13 +190,14 @@
                 console.info("Using cached results", cachedResults);
                 onFetchedProviderResults(cachedResults.results, episode, episodeId);
             } else {
+                const cleanedQuery = getCleanedQuery(query);
                 GM_xmlhttpRequest({
                     method: "GET",
-                    url: provider.getUrl(getCleanedQuery(query)),
+                    url: provider.getUrl(cleanedQuery),
                     fetch: true,
                     onreadystatechange: state => {
                         let results = getResults(state);
-                        results = getPertinentResults(query, results);
+                        results = getPertinentResults(cleanedQuery, results);
                         onFetchedProviderResults(results, episode, episodeId);
                         let resultsToCache = {
                             results: results,
