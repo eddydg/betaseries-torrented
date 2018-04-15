@@ -39,18 +39,6 @@
                 )
             )
         },
-        "skytorrents": {
-            getUrl: (q) => `https://www.skytorrents.in/search/all/ed/1/?l=en-us&q=${encodeURIComponent(q)}`,
-            getLinks: (dom) => (
-                [...dom.querySelectorAll("tbody tr")]
-                    .map(tr => ({
-                        title: tr.querySelector("a").innerHTML.trim(),
-                        link: tr.querySelector("a[href^='magnet']").href,
-                        size: tr.querySelector("td:nth-child(2)").innerHTML.trim()
-                    })
-                )
-            )
-        },
         "zooqle": {
             getUrl: (q) => `https://zooqle.com/search?q=${encodeURIComponent(q)}+category%3ATV%2CAnime`,
             getLinks: (dom) => (
