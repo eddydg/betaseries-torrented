@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Betaseries Torrented
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Find the best magnet links for your unwatched tvshow episodes
 // @author       Eddydg
 // @match        https://www.betaseries.com/membre/*/episodes
@@ -59,16 +59,28 @@
                     }
                 )
             )
-        }
+        },
+        "skytorrents": {
+            getUrl: (q) => `https://www.skytorrents.lol/search/all/ed/1/?l=en-us&q=${encodeURIComponent(q)}`,
+            getLinks: (dom) => (
+                [...dom.querySelectorAll("tbody tr")]
+                    .map(tr => ({
+                        title: tr.querySelector("a").innerHTML.trim(),
+                        link: tr.querySelector("a[href^='magnet']").href,
+                        size: tr.querySelector("td:nth-child(2)").innerHTML.trim()
+                    })
+                )
+            )
+        },
     };
 
     const CACHE_NAME = "cached_result_";
     const CACHE_DAY_LIFESPAN = 1;
     const today = new Date();
     cleanCachedEpisodeResults();
-    const provider = providers["idope"];
+    const provider = providers["zooqle"];
     const keywords = ["1080p"];
-    const additionalKeywords = ["x265"];
+    const additionalKeywords = [""];
     const magnetIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsElEQVQ4T23QbUhTYRQH8P+9dvMtcznYLHWkU6cLArtNm2FaFEWZRkSkUYq2jBANti+BiVDSF5OMjJQZiLQiYiRpEEVpI5e2pcbUjTWNqdMNW2m+dLN248oac+yB58Phf86P5zkEAk4nEMUAx1ngMAEkcTELjBPAy1DgeSHw03+E8C86gK0USTaI5PSeJHmmIDKaF8HlS/M/lsf1Ay673vhh1eNRnQNm/s/5gDYgKpQkW3adLjwgTBAJfzm/r3tbmHALnJN256cnnW8Yj6ei3PsSH9AOFCfK6etiWWbSwpTTMzI66piw292ckigSxeyQSrdtjheSto8D4xN647USQMNlPuAB0J5zqeTk0rR706jZPGWxWh9RQBPXtApUS1JSiqRpafGRcTGLuvvt2jKgZB2gBnR5l8uzXZavZG9f3+e/KytHa4BprukGEBcSHv4iNzt7p0Cy3dNzr63vApCzDmgBDPsU5+kZkxXv9HpjHbDbfwl1XC6X07HSZOjaOowV3tz3hbuAIbf4FD07ZsP7wcGgwN6MDDo2XYxezVNjZSBwGzAcPHGM/jb2BW8tlqDAfomE5qcn4/WzbuOVQKABMBQeyqPnzTZ0TU4GBfITEujoNDE6X/UYVYHATcBwNkdOL1tseOxyBQXOCAR0hESMhzq98WogIJPJFGq1utVsdqGxsUbV399/y3+JWVlZF5ubm1scjhXU16t8uW+JYrFYodVq14Da2spqi8Vyxx9ITU1VaDSaVg5QKsuqrVbrWu4DeDxelclkahoasqO0tEA5NzfX6A/w+fyq4eHhppERB4qKjijdbvdazgE8AFEUReWzLCskSZIgCGKWYZhuAIsA/gCIpCiqgGXZWJIkQwiCmGEYpgvAAgeEAQj13g0APN6hVQC/vfVGANylAJDenAHA/AMeSRE3vrDTDwAAAABJRU5ErkJggg==";
 
     let openedMagnetBox = null;
@@ -98,18 +110,42 @@
         return btn;
     }
 
-    function getMagnetBox(episodeId, results) {
+    function getExtraLinks(showName, showEpisode) {
+        const streamLink = document.createElement("a");
+        const rarbgLink = document.createElement("a");
+        const span = document.createElement("span");
+        const separatorSpan = document.createElement("span");
+        const li = document.createElement("li");
+        li.style.padding = 0;
+        li.style.background = "none";
+
+        separatorSpan.innerText = " - ";
+        separatorSpan.style.flex = "none";
+        separatorSpan.style.padding = "0 5px";
+        streamLink.innerText = "Streaming";
+        streamLink.href = `https://putlocker.digital/search/${showName.replace(" ", "%20")}/series`;
+        rarbgLink.innerText = "Rarbg";
+        rarbgLink.href = `https://rarbgaccessed.org/torrents.php?search=${showName.replace(" ", "+")}+${showEpisode}&category%5B%5D=41`;
+
+        li.appendChild(streamLink);
+        li.appendChild(separatorSpan);
+        li.appendChild(rarbgLink);
+        return li;
+    }
+
+    function getMagnetBox(episodeId, results, showName, showEpisode) {
         const box = document.createElement('div');
         box.className = "box top srt";
         box.id = episodeId;
         box.style.display = "none";
 
-        const content = document.createElement('content');
+        const content = document.createElement('div');
 
         const ul = document.createElement('ul');
         ul.className = "srt";
 
         results.map(result => appendResultToMagnetBox(result, ul));
+        ul.appendChild(getExtraLinks(showName, showEpisode));
         content.appendChild(ul);
         box.appendChild(content);
 
@@ -131,7 +167,7 @@
 
         const a = document.createElement('a');
         a.href = result.link;
-         a.title = `${result.title} (${result.size})`;
+        a.title = `${result.title} (${result.size})`;
         a.appendChild(span);
 
         const li = document.createElement('li');
@@ -148,9 +184,9 @@
         return results;
     }
 
-    function onFetchedProviderResults(results = [], episode, episodeId) {
+    function onFetchedProviderResults(results = [], episode, episodeId, showName, showEpisode) {
         if (results.length > 0) {
-            const magnetBox = getMagnetBox(episodeId, results);
+            const magnetBox = getMagnetBox(episodeId, results, showName, showEpisode);
             const episodeSideHtml = episode.querySelector(".episode-side");
             const episodeTitleHtml = episode.querySelector(".episode-titre");
 
@@ -176,7 +212,7 @@
             const cachedResults = JSON.parse(GM_getValue(CACHE_NAME + episodeId) || null);
             if (cachedResults && !isCacheTooOld(new Date(cachedResults.date))) {
                 console.info("Using cached results", cachedResults);
-                onFetchedProviderResults(cachedResults.results, episode, episodeId);
+                onFetchedProviderResults(cachedResults.results, episode, episodeId, showName, showEpisode);
             } else {
                 const cleanedQuery = getCleanedQuery(query);
                 GM_xmlhttpRequest({
@@ -186,7 +222,7 @@
                     onreadystatechange: state => {
                         let results = getResults(state);
                         results = getPertinentResults(cleanedQuery, results);
-                        onFetchedProviderResults(results, episode, episodeId);
+                        onFetchedProviderResults(results, episode, episodeId, showName, showEpisode);
                         let resultsToCache = {
                             results: results,
                             date: new Date()
